@@ -48,9 +48,12 @@ class RBIComplianceAgent(Agent):
             flags = regs
         d = RiskDecisionObject(
             decision_id="compliance-check-001",
-            risk_bucket=RiskBucket.MARKET,
-            instrument_or_exposure_id="PORTFOLIO-ALL",
+            risk_bucket=do.risk_bucket if do else RiskBucket.MARKET,
+            instrument_or_exposure_id=do.instrument_or_exposure_id if do else "PORTFOLIO-ALL",
             as_of_date=do.as_of_date if do else __import__('datetime').datetime.utcnow(),
+            var_breakdown=do.var_breakdown if do else None,
+            liquidity_metrics=do.liquidity_metrics if do else None,
+            stress_scenarios=do.stress_scenarios if do else [],
             model_version="rulebook-v1",
             model_technique="RBI-compliance-rules",
             data_lineage=do.data_lineage if do else [],
