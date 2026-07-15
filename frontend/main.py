@@ -10,6 +10,17 @@ class RunRequest(BaseModel):
     run_date: str | None = None
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "market-risk-agent",
+        "status": "ok",
+        "endpoints": ["/health", "/run"],
+        "docs": "/docs",
+        "openapi": "/openapi.json",
+    }
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
