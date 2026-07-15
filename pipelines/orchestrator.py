@@ -31,7 +31,7 @@ class MarketRiskOrchestrator:
         trace = {"run_date": run_date, "ticker": ticker, "steps": []}
         ingest_out = self.ingest.run(
             task="ingest market data",
-            context={"tickers": ["^NSEI", "^BSESN", "INR=X"], "end": run_date},
+            context={"tickers": list(set(["^NSEI", "^BSESN", "INR=X", ticker])), "end": run_date},
         )
         trace["steps"].append({"agent": "ingest", "success": ingest_out.success})
         if not ingest_out.success:

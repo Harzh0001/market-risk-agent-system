@@ -29,8 +29,9 @@ class Agent:
 REGISTRY: Dict[str, Agent] = {}
 
 
-def register(agent: Agent) -> None:
+def register(agent: Agent) -> Agent:
     REGISTRY[agent.name] = agent
+    return agent
 
 
 def get(name: str) -> Agent:

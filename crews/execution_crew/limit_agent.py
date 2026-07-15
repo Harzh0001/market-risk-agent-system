@@ -51,9 +51,10 @@ class LimitAgent(Agent):
             stress_scenarios=stress,
             model_version="rule-v1",
             model_technique="threshold-watch",
-            data_lineage=[lineage],
+            data_lineage=do.data_lineage + [lineage],
+            compliance_flags=do.compliance_flags,
             explanation="; ".join(notes) if notes else "No limit breaches",
-            requires_approval=breach,
+            requires_approval=breach or do.requires_approval,
         )
         return AgentResult(success=True, message="Limit check completed", decision_object=d)
 

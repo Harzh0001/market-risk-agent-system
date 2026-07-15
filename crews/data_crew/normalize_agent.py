@@ -21,7 +21,7 @@ class NormalizeAgent(Agent):
         df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
         df = df.dropna(subset=["Close"]).sort_values(["ticker", "date"]) 
         df["returns"] = df.groupby("ticker")["Close"].pct_change()
-        df["log_returns"] = (1 + df["returns"]).map(lambda x: x if pd.notna(x) else 0).pipe(lambda s: pd.np.log if hasattr(pd,np) else __import__('numpy').log)(s+1)
+        df["log_returns"] = __import__('numpy').log(1 + df["returns"].fillna(0))
         df = df.dropna(subset=["returns"]).reset_index(drop=True)
         df.to_parquet(r"data/silver/market_clean.parquet", index=False)
         min_q = context.get("min_quality_score", 0.8)

@@ -27,7 +27,7 @@ class IngestAgent(Agent):
                 continue
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = [c[0] for c in df.columns]
-            df = df.reset_index().rename(columns={"Date": "date"}) if "Date" in df.columns else df.reset_index()
+            df = df.reset_index().rename(columns={"Date": "date", "index": "date"})
             df["ticker"] = t
             frames.append(df)
         if not frames:

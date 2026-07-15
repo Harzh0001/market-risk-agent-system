@@ -34,11 +34,15 @@ class DriftAgent(Agent):
             risk_bucket=do.risk_bucket,
             instrument_or_exposure_id=do.instrument_or_exposure_id,
             as_of_date=do.as_of_date,
+            var_breakdown=do.var_breakdown,
+            liquidity_metrics=do.liquidity_metrics,
+            stress_scenarios=do.stress_scenarios,
             model_version="drift-v1",
             model_technique="threshold",
-            data_lineage=[lineage],
+            data_lineage=do.data_lineage + [lineage],
+            compliance_flags=do.compliance_flags,
             explanation="Meta-monitoring of decision quality",
-            requires_approval=kill,
+            requires_approval=kill or do.requires_approval,
         )
         reason = "Triggers=" + ",".join(flags) if flags else "clean"
         return AgentResult(success=True, message=reason, decision_object=d)
