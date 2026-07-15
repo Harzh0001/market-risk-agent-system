@@ -1,0 +1,38 @@
+---
+run:
+  as_of_date: "2025-01-01"
+  currency: INR
+  reporting_suffix: bank_desk_01
+
+data:
+  equity_indices:
+    - ^NSEI
+    - ^BSESN
+  fx_usd_inr: INR=X
+  default_start: "2018-01-01"
+  min_quality_score: 0.8
+
+risk:
+  var_confidence: 0.99
+  var_horizon_days: 1
+  var_historical_window: 500
+  es_confidence: 0.99
+  stress_scenarios:
+    - rbi_severe_march_2020
+    - taper_tantrum_2013
+
+compliance:
+  primary_jurisdiction: IN
+  applicable_regulations:
+    - RBI_Master_Direction_NBFC
+    - Basel_III_Market_Risk
+    - SBC2_VaR
+  approval_threshold_inr: 50000000.0
+
+mlflow:
+  tracking_uri: "file:./mlruns"
+  experiment: market_risk_agent
+
+observability:
+  service_name: market-risk-agent
+  otel_exporter: otlp
