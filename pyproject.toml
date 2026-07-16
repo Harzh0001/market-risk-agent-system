@@ -15,7 +15,7 @@ dependencies = [
     "tenacity>=9.0",
     "fastapi>=0.111",
     "uvicorn>=0.30",
-    "streamlit>=1.37",
+
     "plotly>=5.24",
     "kaleido>=0.2",
     "ruff>=0.5",
