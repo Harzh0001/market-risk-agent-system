@@ -36,3 +36,11 @@ mlflow:
 observability:
   service_name: market-risk-agent
   otel_exporter: otlp
+
+llm:
+  enabled: false
+  backend: kimi
+  kimi:
+    base_url: "https://api.moonshot.ai/v1"
+    env_key: "MOONSHOT_API_KEY"
+    default_model: "kimi-k2.6"

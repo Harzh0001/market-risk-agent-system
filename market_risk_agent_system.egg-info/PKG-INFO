@@ -1,0 +1,35 @@
+Metadata-Version: 2.4
+Name: market-risk-agent-system
+Version: 0.1.0
+Summary: Multi-agent market risk prediction system aligned with RBI guidelines.
+Requires-Python: >=3.11
+Requires-Dist: pydantic>=2.7
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.2
+Requires-Dist: scipy>=1.11
+Requires-Dist: scikit-learn>=1.5
+Requires-Dist: requests>=2.32
+Requires-Dist: yfinance>=0.2.40
+Requires-Dist: python-dotenv>=1.0
+Requires-Dist: tenacity>=9.0
+Requires-Dist: fastapi>=0.111
+Requires-Dist: uvicorn>=0.30
+Requires-Dist: streamlit>=1.37
+Requires-Dist: plotly>=5.24
+Requires-Dist: kaleido>=0.2
+Requires-Dist: ruff>=0.5
+Provides-Extra: ml
+Requires-Dist: xgboost>=2.0; extra == "ml"
+Requires-Dist: lightgbm>=4.5; extra == "ml"
+Requires-Dist: torch>=2.3; extra == "ml"
+Requires-Dist: pytorch-forecasting>=1.0; extra == "ml"
+Requires-Dist: statsmodels>=0.14; extra == "ml"
+Requires-Dist: arch>=7.0; extra == "ml"
+Requires-Dist: pyfolio>=0.9; extra == "ml"
+Requires-Dist: mlflow>=2.15; extra == "ml"
+Requires-Dist: great-expectations>=0.18; extra == "ml"
+Requires-Dist: opentelemetry-api>=1.27; extra == "ml"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.3; extra == "dev"
+Requires-Dist: pytest-cov>=5.0; extra == "dev"
+Requires-Dist: httpx>=0.27; extra == "dev"

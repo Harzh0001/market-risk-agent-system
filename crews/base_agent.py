@@ -1,9 +1,7 @@
-"""Base agent interface and simple registry.
-
-Agents expose a `run(task, context)` method and produce audited outputs.
-"""
+"""Base agent interface, registry, and optional LLM-backed run wrapper."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -36,3 +34,27 @@ def register(agent: Agent) -> Agent:
 
 def get(name: str) -> Agent:
     return REGISTRY[name]
+
+
+def llm_enabled() -> bool:
+    cfg_path = os.path.join(os.path.dirname(__file__), "..", "infra", "config.yaml")
+    if not os.path.exists(cfg_path):
+        return False
+    try:
+        import yaml  # type: ignore
+
+        with open(cfg_path, "r", encoding="utf-8") as fh:
+            cfg = yaml.safe_load(fh) or {}
+        return bool(cfg.get("llm", {}).get("enabled", False))
+    except Exception:
+        return False
+
+
+def kimi_client() -> Optional[Any]:
+    if not llm_enabled():
+        return None
+    if os.getenv("MOONSHOT_API_KEY"):
+        from infra.kimi_client import KimiClient  # type: ignore
+
+        return KimiClient()
+    return None
