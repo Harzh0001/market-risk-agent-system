@@ -37,14 +37,14 @@ class MarketRiskOrchestrator:
         if not ingest_out.success:
             return trace
 
-        norm_out = self.normalize.run(task="normalize data", context={"raw_path": "data/raw/market_quotes.parquet"})
+        norm_out = self.normalize.run(task="normalize data", context={"raw_path": r"data/raw/market_quotes.csv"})
         trace["steps"].append({"agent": "normalize", "success": norm_out.success})
         if not norm_out.success:
             return trace
 
-        var_out = self.var.run(task="compute VaR", context={"ticker": ticker, "clean_path": "data/silver/market_clean.parquet"})
-        factor_out = self.factor.run(task="factor decomposition", context={"ticker": ticker, "clean_path": "data/silver/market_clean.parquet"})
-        macro_out = self.macro.run(task="regime detection", context={"clean_path": "data/silver/market_clean.parquet"})
+        var_out = self.var.run(task="compute VaR", context={"ticker": ticker, "clean_path": r"data/silver/market_clean.csv"})
+        factor_out = self.factor.run(task="factor decomposition", context={"ticker": ticker, "clean_path": r"data/silver/market_clean.csv"})
+        macro_out = self.macro.run(task="regime detection", context={"clean_path": r"data/silver/market_clean.csv"})
         trace["steps"].extend([
             {"agent": "var", "success": var_out.success},
             {"agent": "factor", "success": factor_out.success},

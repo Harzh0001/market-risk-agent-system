@@ -33,7 +33,7 @@ class IngestAgent(Agent):
         if not frames:
             return AgentResult(success=False, message="No data downloaded")
         raw = pd.concat(frames, ignore_index=True)
-        raw.to_parquet(r"data/raw/market_quotes.parquet", index=False)
+        raw.to_csv(r"data/raw/market_quotes.csv", index=False)
         lineage = Lineage(
             source="market_feed",
             dataset="yfinance_nse_usd",

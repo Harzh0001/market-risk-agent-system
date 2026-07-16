@@ -23,8 +23,8 @@ class BacktesterAgent(Agent):
     role = "modeling"
 
     def run(self, task: str, context: Dict[str, Any]) -> AgentResult:
-        path = context.get("clean_path", r"data/silver/market_clean.parquet")
-        df = pd.read_parquet(path)
+        path = context.get("clean_path", r"data/silver/market_clean.csv")
+        df = pd.read_csv(path)
         ticker = context.get("ticker", "^NSEI")
         window = int(context.get("backtest_window", 500))
         confidence = float(context.get("confidence", 0.99))

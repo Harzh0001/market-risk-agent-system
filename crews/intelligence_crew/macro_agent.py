@@ -43,8 +43,8 @@ class MacroRegimeAgent(Agent):
     role = "intelligence"
 
     def run(self, task: str, context: Dict[str, Any]) -> AgentResult:
-        path = context.get("clean_path", r"data/silver/market_clean.parquet")
-        df = pd.read_parquet(path)
+        path = context.get("clean_path", r"data/silver/market_clean.csv")
+        df = pd.read_csv(path)
         nsei = df.loc[df["ticker"] == "^NSEI", ["date", "returns"]].dropna().sort_values("date").tail(252)
         if nsei.empty:
             return AgentResult(success=False, message="Missing index returns for regime detection")

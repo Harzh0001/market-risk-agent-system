@@ -16,14 +16,14 @@ class NormalizeAgent(Agent):
     role = "data"
 
     def run(self, task: str, context: Dict[str, Any]) -> AgentResult:
-        path = context.get("raw_path", r"data/raw/market_quotes.parquet")
-        df = pd.read_parquet(path)
+        path = context.get("raw_path", r"data/raw/market_quotes.csv")
+        df = pd.read_csv(path)
         df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
         df = df.dropna(subset=["Close"]).sort_values(["ticker", "date"]) 
         df["returns"] = df.groupby("ticker")["Close"].pct_change()
         df["log_returns"] = __import__('numpy').log(1 + df["returns"].fillna(0))
         df = df.dropna(subset=["returns"]).reset_index(drop=True)
-        df.to_parquet(r"data/silver/market_clean.parquet", index=False)
+        df.to_csv(r"data/silver/market_clean.csv", index=False)
         min_q = context.get("min_quality_score", 0.8)
         lower = df.groupby("ticker")["returns"].quantile(0.01)
         valid = len(df)

@@ -33,8 +33,8 @@ class VarAgent(Agent):
         return float(-(mu + sigma * q))
 
     def run(self, task: str, context: Dict[str, Any]) -> AgentResult:
-        path = context.get("clean_path", r"data/silver/market_clean.parquet")
-        df = pd.read_parquet(path)
+        path = context.get("clean_path", r"data/silver/market_clean.csv")
+        df = pd.read_csv(path)
         ticker = context.get("ticker", "^NSEI")
         window = int(context.get("window", 500))
         alpha = float(context.get("confidence", 0.99))

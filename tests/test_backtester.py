@@ -16,12 +16,12 @@ def make_fake(path: str, ticker: str = "^NSEI", rows: int = 600) -> None:
     rng = np.random.default_rng(0)
     rets = rng.normal(loc=0.0003, scale=0.012, size=rows)
     dates = pd.bdate_range(end=pd.Timestamp.today().date(), periods=rows)
-    pd.DataFrame({"date": dates, "ticker": ticker, "returns": rets, "Close": 100.0}).to_parquet(path)
+    pd.DataFrame({"date": dates, "ticker": ticker, "returns": rets, "Close": 100.0}).to_csv(path, index=False)
 
 
 def main() -> int:
-    raw = str(ROOT / "data/raw/market_quotes.parquet")
-    silver = str(ROOT / "data/silver/market_clean.parquet")
+    raw = str(ROOT / "data/raw/market_quotes.csv")
+    silver = str(ROOT / "data/silver/market_clean.csv")
     Path(raw).parent.mkdir(parents=True, exist_ok=True)
     try:
         import numpy  # noqa: F401

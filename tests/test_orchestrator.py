@@ -23,17 +23,17 @@ def make_synthetic(path_raw: str, path_silver: str, tickers, rows: int = 600) ->
         frames.append(pd.DataFrame({"date": dates, "ticker": t, "returns": rets, "Close": 100.0}))
     raw = pd.concat(frames, ignore_index=True)
     Path(path_raw).parent.mkdir(parents=True, exist_ok=True)
-    raw.to_parquet(path_raw, index=False)
+    raw.to_csv(path_raw, index=False)
     df = raw.copy()
     df = df.dropna(subset=["returns"]).reset_index(drop=True)
-    df.to_parquet(path_silver, index=False)
+    df.to_csv(path_silver, index=False)
 
 
 def flow_with_numpy() -> int:
     from pipelines.orchestrator import MarketRiskOrchestrator  # type: ignore
 
-    raw = str(ROOT / "data/raw/market_quotes.parquet")
-    silver = str(ROOT / "data/silver/market_clean.parquet")
+    raw = str(ROOT / "data/raw/market_quotes.csv")
+    silver = str(ROOT / "data/silver/market_clean.csv")
     make_synthetic(raw, silver, ["^NSEI", "^BSESN", "INR=X"])
     trace = MarketRiskOrchestrator().run(run_date=dt.date.today().isoformat(), ticker="^NSEI")
     print(trace)
