@@ -41,7 +41,7 @@ class DriftAgent(Agent):
             model_technique="threshold",
             data_lineage=do.data_lineage + [lineage],
             compliance_flags=do.compliance_flags,
-            explanation="Meta-monitoring of decision quality",
+            explanation=(do.explanation or "") + (" | " if do.explanation else "") + "Meta-monitoring of decision quality",
             requires_approval=kill or do.requires_approval,
         )
         reason = "Triggers=" + ",".join(flags) if flags else "clean"
