@@ -92,7 +92,7 @@
     const explanation = (raw && raw.explanation) ? raw.explanation.toLowerCase() : '';
     const lowerJson = JSON.stringify(raw || {}).toLowerCase();
 
-    const hasSentimentMarker = explanation.includes('news sentiment=') || lowerJson.includes('news sentiment=');
+    const hasSentimentMarker = explanation.includes('news sentiment=') || lowerJson.includes('news sentiment=') || explanation.includes('sentiment uplift') || explanation.includes('sentiment downgrade');
     if (!hasSentimentMarker) {
       box.innerHTML = '<div class="empty">Sentiment not applied.</div>';
       return;
