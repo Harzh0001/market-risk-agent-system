@@ -8,6 +8,15 @@
 
   const fmtPct = (n) => (n === null || n === undefined ? '—' : `${(Number(n) * 100).toFixed(4)}%`);
 
+  function setClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const c = $('clock');
+    if (c) c.textContent = `${hh}:${mm}:${ss} IST`;
+  }
+
   function setStatus(state, label) {
     const dot = $('statusDot');
     const txt = $('statusLabel');
@@ -15,144 +24,117 @@
     txt.textContent = label;
   }
 
-  function setStepState(agent, ok) {
-    const node = document.querySelector(`.step[data-agent="${agent}"]`);
-    if (!node) return;
-    node.classList.remove('success', 'failure');
-    node.classList.add(ok ? 'success' : 'failure');
+  function riskClass(raw) {
+    const v = Math.abs(Number(raw) || 0);
+    if (v >= 0.015) return 'high';
+    if (v >= 0.008) return 'elevated';
+    return 'low';
   }
 
-  function resetSteps() {
-    document.querySelectorAll('.step').forEach((n) => n.classList.remove('success', 'failure'));
+  function riskLabel(cls) {
+    if (cls === 'high') return 'HIGH';
+    if (cls === 'elevated') return 'ELEVATED';
+    return 'LOW';
   }
 
-  async function ping() {
-    setStatus('loading', 'Pinging…');
-    try {
-      const r = await fetch(`${API}/health`, { headers: { accept: 'application/json' } });
-      const j = await r.json();
-      setStatus(j.status === 'ok' ? 'healthy' : 'error', `health=${j.status || 'unknown'}`);
-      return j.status === 'ok';
-    } catch (e) {
-      setStatus('error', 'Unreachable');
-      return false;
-    }
+  function applyRow(prefix, text, raw) {
+    const cls = riskClass(raw);
+    const label = riskLabel(cls);
+    const levelEl = $(prefix + 'Level');
+    const valueEl = $(prefix + 'Value');
+    const statusEl = $(prefix + 'Status');
+    if (levelEl) levelEl.textContent = label;
+    if (valueEl) valueEl.textContent = text;
+    if (statusEl) statusEl.innerHTML = `<span class="chip ${cls}">${label}</span>`;
   }
 
-  function renderCompliance(flags) {
-    const box = $('complianceList');
-    if (!flags || flags.length === 0) {
-      box.innerHTML = '<div class="empty">No compliance flags.</div>';
-      return;
-    }
-    const statusMap = {
-      passed: 'pass',
-      pass: 'pass',
-      failed: 'fail',
-      fail: 'fail',
-      pending_lineage_gap_check: 'warn',
-      pending_backtest: 'warn',
-      pending_stress: 'warn',
-    };
-    box.innerHTML = flags
-      .map((f) => {
-        const cls = statusMap[(f.status || '').toLowerCase()] || 'unknown';
-        const icon = cls === 'pass' ? '✅' : cls === 'fail' ? '❌' : '⚠️';
-        const title = `${f.regulation} · ${f.article_or_circular}`;
-        const detail = f.remediation ? `<div class="remediation">${f.remediation}</div>` : '';
-        return `<div class="compliance-item ${cls}"><span class="compliance-icon">${icon}</span><div><div class="compliance-title">${title}</div><div class="compliance-status">${f.status}${detail}</div></div></div>`;
-      })
-      .join('');
+  function applyCompliance(raw) {
+    const flags = (raw && raw.compliance_flags) ? raw.compliance_flags : [];
+    const pending = flags.filter(f => (f.status || '').toLowerCase().includes('pending')).length;
+    const failed = flags.filter(f => (f.status || '').toLowerCase().includes('fail')).length;
+    const passed = flags.length - pending - failed;
+    const label = failed > 0 ? 'FAIL' : passed === flags.length ? 'PASS' : 'ELEVATED';
+    const cls = failed > 0 ? 'high' : passed === flags.length ? 'low' : 'elevated';
+    applyRow('compliance', `${passed}/${flags.length} passed`, cls === 'high' ? 0.02 : cls === 'low' ? 0.0 : 0.01);
   }
 
-  function renderDecision(do_) {
-    const box = $('decisionSummary');
-    if (!do_) {
-      box.innerHTML = '<div class="empty">No decision object in response.</div>';
-      return;
-    }
-    const v = do_.var_breakdown || {};
-    const rows = [
-      { label: 'Decision ID', value: do_.decision_id || '—' },
-      { label: 'Created', value: do_.created_at || '—' },
-      { label: 'Risk bucket', value: do_.risk_bucket || '—' },
-      { label: 'Instrument', value: do_.instrument_or_exposure_id || '—' },
-      { label: 'Model version', value: do_.model_version || '—' },
-      { label: 'Technique', value: do_.model_technique || '—' },
-      { label: 'Requires approval', value: do_.requires_approval ? 'Yes' : 'No' },
+  function applyApproval(raw) {
+    const approval = raw && raw.requires_approval != null ? raw.requires_approval : null;
+    const label = approval === true ? 'REQUIRES APPROVAL' : approval === false ? 'NO ACTION' : 'UNKNOWN';
+    const cls = approval === true ? 'high' : 'low';
+    applyRow('approval', label === 'REQUIRES APPROVAL' ? 'YES' : label === 'NO ACTION' ? 'NO' : '—', approval === true ? 0.02 : 0.0);
+  }
+
+  function renderDecision(raw) {
+    const box = $('decisionPanel');
+    if (!box) return;
+    if (!raw) { box.innerHTML = '<div class="empty">No decision object.</div>'; return; }
+    const v = raw.var_breakdown || {};
+    const items = [
+      { label: 'Decision ID', value: raw.decision_id || '—' },
+      { label: 'Created', value: raw.created_at || '—' },
+      { label: 'Instrument', value: raw.instrument_or_exposure_id || '—' },
+      { label: 'Model version', value: raw.model_version || '—' },
+      { label: 'Technique', value: raw.model_technique || '—' },
       { label: 'VaR 1D 99', value: fmtPct(v.var_1d_99) },
       { label: 'VaR 10D 99', value: fmtPct(v.var_10d_99) },
       { label: 'ES 1D 99', value: fmtPct(v.es_1d_99) },
       { label: 'ES 10D 99', value: fmtPct(v.es_10d_99) },
-      { label: 'Explanation', value: do_.explanation || '—' },
+      { label: 'Confidence', value: raw.confidence != null ? Number(raw.confidence).toFixed(2) : '—' },
+      { label: 'Explanation', value: raw.explanation || '—' },
     ];
-    box.innerHTML = rows
-      .map(
-        (r) =>
-          `<div class="kv"><span>${r.label}</span><span class="mono">${r.value}</span></div>`
-      )
-      .join('');
+    box.innerHTML = items.map(r => `<div class="kv"><span>${r.label}</span><span class="mono">${r.value}</span></div>`).join('');
   }
 
-  function renderTrace(steps, filter = 'all') {
-    const box = $('traceTable');
-    const filtered = (steps || []).filter((s) => {
-      if (filter === 'all') return true;
-      if (filter === 'success') return s.success;
-      if (filter === 'fail') return !s.success;
-      return true;
-    });
-    window.__lastTrace = steps || [];
-    box.innerHTML = filtered
-      .map(
-        (s) => `<tr class="${s.success ? 'row-success' : 'row-fail'}">
-        <td><span class="agent-chip ${s.success ? 'chip-success' : 'chip-fail'}">${s.success ? '✔' : '✖'} ${s.agent}</span></td>
-        <td>${s.success ? 'Passed' : 'Failed'}</td>
-      </tr>`
-      )
-      .join('') || '<div class="empty">No matching steps.</div>';
-  }
-
-  function renderLineage(lineage) {
-    const box = $('lineageTable');
-    if (!lineage || lineage.length === 0) {
-      box.innerHTML = '<div class="empty">No lineage entries.</div>';
+  function renderSentiment(raw) {
+    const box = $('sentimentPanel');
+    if (!box) return;
+    const explanation = (raw && raw.explanation) ? raw.explanation.toLowerCase() : '';
+    if (!explanation.includes('sentiment=')) {
+      box.innerHTML = '<div class="empty">Sentiment not applied.</div>';
       return;
     }
-    box.innerHTML = lineage
-      .map(
-        (l) => `<tr>
-        <td>${l.source || ''}</td>
-        <td class="mono">${l.dataset || ''}</td>
-        <td class="mono">${l.version || ''}</td>
-        <td>${l.as_of || ''}</td>
-        <td>
-          <div class="quality">
-            <div class="quality-bar"><div class="quality-fill" style="width:${Math.round((l.quality_score || 0) * 100)}%"></div></div>
-            <span class="mono">${Number(l.quality_score || 0).toFixed(2)}</span>
-          </div>
-        </td>
-      </tr>`
-      )
-      .join('');
+    const label = (explanation.match(/sentiment=([a-z]+)/) || ['','neutral'])[1];
+    const score = (explanation.match(/score=([-\d.]+)/) || ['','0.0'])[1];
+    const articles = (explanation.match(/articles=(\d+)/) || ['0'])[1];
+    const source = (explanation.match(/source=([a-z_]+)/) || ['unknown'])[1];
+    const uplift = explanation.includes('sentiment uplift');
+    const downgrade = explanation.includes('sentiment downgrade');
+    const theme = uplift ? 'positive' : downgrade ? 'negative' : 'neutral';
+    const effect = uplift ? '+10% VaR uplift' : downgrade ? '-15% VaR haircut' : 'No change';
+    box.innerHTML = `
+      <div class="signal-card ${theme}">
+        <div class="signal-header">
+          <span class="signal-dot" style="background:${theme === 'positive' ? '#10b981' : theme === 'negative' ? '#ef4444' : '#9ca3af'};box-shadow:0 0 10px ${theme === 'positive' ? '#10b981' : theme === 'negative' ? '#ef4444' : '#9ca3af'}"></span>
+          <span class="signal-title">${label.toUpperCase()} · ${source}</span>
+        </div>
+        <div class="signal-body">
+          <div class="kv"><span>Score</span><span class="mono">${Number(score).toFixed(3)}</span></div>
+          <div class="kv"><span>Effect</span><span>${effect}</span></div>
+          <div class="kv"><span>Articles</span><span class="mono">${articles}</span></div>
+        </div>
+      </div>`;
   }
 
-  function updateMetrics(do_) {
-    const v = do_ && do_.var_breakdown ? do_.var_breakdown : null;
-    $('var1d').textContent = v ? fmtPct(v.var_1d_99) : '—';
-    $('var10d').textContent = v ? fmtPct(v.var_10d_99) : '—';
-    $('es1d').textContent = v ? fmtPct(v.es_1d_99) : '—';
-    $('es10d').textContent = v ? fmtPct(v.es_10d_99) : '—';
+  async function ping() {
+    setStatus('loading', 'SYNCING');
+    try {
+      const r = await fetch(API + '/health', { headers: { accept: 'application/json' } });
+      const j = await r.json();
+      setStatus(j.status === 'ok' ? 'healthy' : 'error', j.status === 'ok' ? 'ONLINE' : 'ERROR');
+      return j.status === 'ok';
+    } catch (e) {
+      setStatus('error', 'OFFLINE');
+      return false;
+    }
   }
 
   async function runWorkflow() {
     const ticker = ($('ticker').value || '^NSEI').trim();
-    const runDate = $('runDate').value || new Date().toISOString().slice(0, 10);
-    setStatus('loading', 'Running workflow…');
-    resetSteps();
+    setStatus('loading', 'RUNNING');
     $('runBtn').disabled = true;
     try {
-      const r = await fetch(`${API}/run`, {
+      const r = await fetch(API + '/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker }),
@@ -160,50 +142,59 @@
       const j = await r.json();
       if (!r.ok) throw new Error(j.detail || r.statusText);
 
-      (j.steps || []).forEach((s) => setStepState(s.agent, s.success));
+      const steps = j.steps || [];
+      const successCount = steps.filter(s => s.success).length;
+      const statusEl = $('runStatusLabel');
+      if (statusEl) statusEl.textContent = `${successCount}/${steps.length} PASSED`;
+      const dateEl = $('runDateLabel');
+      if (dateEl) dateEl.textContent = j.run_date || '--';
+      const tickerEl = $('tickerLabel');
+      if (tickerEl) tickerEl.textContent = j.ticker || ticker;
 
-      updateMetrics(j.final_decision_object);
-      renderCompliance((j.final_decision_object || {}).compliance_flags);
-      renderDecision(j.final_decision_object);
-      renderTrace(j.steps, 'all');
-      renderLineage((j.final_decision_object || {}).data_lineage);
+      const raw = j.final_decision_object || {};
+      const v = raw.var_breakdown || {};
+      applyRow('var', fmtPct(v.var_1d_99), v.var_1d_99);
+      applyRow('es', fmtPct(v.es_1d_99), v.es_1d_99);
+      applyCompliance(raw);
+      applyApproval(raw);
 
-      $('runInfo').textContent = `Ran ${j.run_date} · ${j.ticker} · ${(j.steps || []).filter((s) => s.success).length}/${(j.steps || []).length} steps succeeded`;
-      setStatus('healthy', 'Complete');
+      renderDecision(raw);
+      renderSentiment(raw);
+
+      const infoEl = $('runInfo');
+      if (infoEl) infoEl.textContent = `Last run: ${j.run_date} · ${j.ticker} · ${successCount}/${steps.length} agents passed`;
+      setStatus('healthy', 'COMPLETE');
     } catch (e) {
-      setStatus('error', 'Run failed');
-      renderCompliance([]);
-      renderDecision(null);
-      renderTrace([], 'all');
-      renderLineage([]);
-      $('runInfo').textContent = 'Error: ' + (e.message || String(e));
+      setStatus('error', 'FAILED');
+      const infoEl = $('runInfo');
+      if (infoEl) infoEl.textContent = 'Error: ' + (e.message || String(e));
     } finally {
       $('runBtn').disabled = false;
     }
   }
 
   function init() {
-    $('runDate').value = new Date().toISOString().slice(0, 10);
-    $('runBtn').addEventListener('click', runWorkflow);
-    $('healthBtn').addEventListener('click', async () => {
+    setClock();
+    setInterval(setClock, 1000);
+    const today = new Date().toISOString().slice(0, 10);
+    const rd = $('runDateLabel');
+    if (rd) rd.textContent = today;
+
+    const runBtn = $('runBtn');
+    if (runBtn) runBtn.addEventListener('click', runWorkflow);
+    const healthBtn = $('healthBtn');
+    if (healthBtn) healthBtn.addEventListener('click', async () => {
       const ok = await ping();
-      if (ok) $('runInfo').textContent = 'Health OK';
+      const infoEl = $('runInfo');
+      if (ok && infoEl) infoEl.textContent = 'Health OK';
     });
 
-    $('traceTable').addEventListener('click', (e) => {
-      const btn = e.target.closest('.chip');
-      if (!btn) return;
-      document.querySelectorAll('.trace-controls .chip').forEach((c) => c.classList.remove('active'));
-      btn.classList.add('active');
-      renderTrace(window.__lastTrace || [], btn.dataset.filter);
-    });
+    const ticker = $('ticker');
+    const tickerLabel = $('tickerLabel');
+    if (ticker && tickerLabel) ticker.addEventListener('change', (e) => { tickerLabel.textContent = e.target.value; });
 
     ping();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

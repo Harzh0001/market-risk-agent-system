@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import os
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -12,6 +13,8 @@ import requests
 
 from crews.base_agent import Agent, AgentResult, register
 from schemas.decision_objects import DataSource, Lineage, RiskDecisionObject
+
+ROOT = Path(__file__).resolve().parents[2]
 
 LOGGER = logging.getLogger("market-risk.news")
 
@@ -107,13 +110,23 @@ class NewsSentimentAgent(Agent):
         symbol = ticker.replace("^", "")
         texts = _fetch_news(symbol, limit=25)
         score_data = _score_texts(texts)
+        source = "newsapi"
+        if score_data["articles"] == 0:
+            source = "price_fallback"
+            score_data = self._price_fallback_sentiment(ticker) or score_data
 
         lineage = Lineage(
             source=DataSource.NEWS,
             dataset="news_sentiment_v1",
             version="v1",
             as_of=dt.datetime.utcnow(),
-            quality_score=min(score_data["articles"] / 25.0, 1.0),
+            quality_score=min(score_data["articles"] / 25.0, 1.0) if source == "newsapi" else 0.3,
+        )
+
+        explanation = (
+            f"news sentiment={score_data['sentiment_label']} "
+            f"(score={score_data['sentiment_score']:.3f}, "
+            f"articles={score_data['articles']}, source={source})"
         )
 
         decision = RiskDecisionObject(
@@ -125,14 +138,30 @@ class NewsSentimentAgent(Agent):
             model_technique="news-keyword",
             confidence=float(np.clip(abs(score_data["sentiment_score"]) + 0.1, 0.0, 0.99)),
             data_lineage=[lineage],
-            explanation=(
-                f"news sentiment={score_data['sentiment_label']} "
-                f"(score={score_data['sentiment_score']:.3f}, "
-                f"articles={score_data['articles']})"
-            ),
+            explanation=explanation,
         )
         return AgentResult(
             success=True,
             message=f"Fetched {score_data['articles']} articles; sentiment={score_data['sentiment_label']}",
             decision_object=decision,
         )
+
+    def _price_fallback_sentiment(self, ticker: str) -> Dict[str, Optional[float]]:
+        try:
+            raw_path = str(ROOT / "data/silver/market_clean.csv")
+            if not os.path.exists(raw_path):
+                return {"sentiment_score": 0.0, "sentiment_label": "neutral", "articles": 0}
+
+            df = pd.read_csv(raw_path)
+            sym = ticker.replace("^", "")
+            sub = df.loc[df["ticker"].str.upper() == sym.upper(), ["date", "returns"]].dropna().sort_values("date").tail(5)
+            if sub.empty or len(sub) < 2:
+                return {"sentiment_score": 0.0, "sentiment_label": "neutral", "articles": 0}
+
+            ret = float(sub["returns"].sum())
+            score = max(min(ret * 20.0, 1.0), -1.0)
+            label = "positive" if score > 0.25 else "negative" if score < -0.25 else "neutral"
+            return {"sentiment_score": float(score), "sentiment_label": label, "articles": 0}
+        except Exception:
+            return {"sentiment_score": 0.0, "sentiment_label": "neutral", "articles": 0}
+
