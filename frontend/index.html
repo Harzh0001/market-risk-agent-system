@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic Market Risk Monitor — RBI-aligned</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🛡️</span>
+      <div class="brand-text">
+        <h1>Agentic Market Risk Monitor</h1>
+        <p class="subtitle">Multi-agent risk intelligence · RBI-aligned · Basel III / SBC2</p>
+      </div>
+    </div>
+    <div class="system-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-label" id="statusLabel">Connecting…</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel control-panel">
+      <h2>Control Panel</h2>
+      <div class="form-grid">
+        <label>
+          <span>Instrument</span>
+          <input id="ticker" type="text" value="^NSEI" />
+        </label>
+        <label>
+          <span>As of date</span>
+          <input id="runDate" type="date" />
+        </label>
+        <div class="actions">
+          <button id="runBtn" class="primary">▶ Run Agentic Workflow</button>
+          <button id="healthBtn" class="secondary">⟳ Ping /health</button>
+        </div>
+      </div>
+
+      <div class="workflow-visual">
+        <div class="step" data-agent="ingest">
+          <div class="step-icon">📥</div>
+          <div class="step-label">Ingest</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="normalize">
+          <div class="step-icon">🧹</div>
+          <div class="step-label">Normalize</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="var">
+          <div class="step-icon">📉</div>
+          <div class="step-label">VaR</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="factor">
+          <div class="step-icon">🧮</div>
+          <div class="step-label">Factor</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="macro">
+          <div class="step-icon">🌐</div>
+          <div class="step-label">Macro</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="compliance">
+          <div class="step-icon">⚖️</div>
+          <div class="step-label">RBI</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="limit">
+          <div class="step-icon">🚧</div>
+          <div class="step-label">Limit</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="drift">
+          <div class="step-icon">📡</div>
+          <div class="step-label">Drift</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-grid" id="metricsGrid">
+      <article class="metric-card">
+        <div class="metric-label">1-Day VaR (99%)</div>
+        <div class="metric-value" id="var1d">—</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">10-Day VaR (99%)</div>
+        <div class="metric-value" id="var10d">—</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">1-Day ES (99%)</div>
+        <div class="metric-value" id="es1d">—</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">10-Day ES (99%)</div>
+        <div class="metric-value" id="es10d">—</div>
+      </article>
+    </section>
+
+    <section class="split">
+      <div class="panel compliance-panel">
+        <h3>⚖️ Regulatory Compliance</h3>
+        <div id="complianceList" class="compliance-list"></div>
+      </div>
+      <div class="panel decision-panel">
+        <h3>📋 Decision Summary</h3>
+        <div id="decisionSummary" class="decision-summary"></div>
+      </div>
+    </section>
+
+    <section class="panel trace-panel">
+      <h3>🛠️ Agent Execution Trace</h3>
+      <div class="trace-controls">
+        <button class="chip" data-filter="all">All</button>
+        <button class="chip" data-filter="success">Success</button>
+        <button class="chip" data-filter="fail">Failed</button>
+      </div>
+      <div id="traceTable" class="trace-table"></div>
+    </section>
+
+    <section class="panel lineage-panel">
+      <h3>🔗 Data Lineage</h3>
+      <div id="lineageTable" class="lineage-table"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Agentic Market Risk Monitor · Built for Indian RBI regulatory alignment</span>
+      <span class="mono" id="runInfo">No run yet</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      const API = window.location.origin;
+
+      function el(id) { return document.getElementById(id); }
+
+      function pct(n) {
+        if (n === null || n === undefined) return '—';
+        return (Number(n) * 100).toFixed(4) + '%';
+      }
+
+      function setStatus(state, label) {
+        const dot = el('statusDot');
+        const txt = el('statusLabel');
+        dot.className = 'status-dot ' + state;
+        txt.textContent = label;
+      }
+
+      function setStepState(agent, ok) {
+        const node = document.querySelector(`.step[data-agent="${agent}"]`);
+        if (!node) return;
+        node.classList.remove('success', 'failure');
+        node.classList.add(ok ? 'success' : 'failure');
+      }
+
+      function resetSteps() {
+        document.querySelectorAll('.step').forEach(n => n.classList.remove('success', 'failure'));
+      }
+
+      async function ping() {
+        setStatus('loading', 'Pinging…');
+        try {
+          const r = await fetch(API + '/health', { headers: { accept: 'application/json' } });
+          const j = await r.json();
+          setStatus(j.status === 'ok' ? 'healthy' : 'error', 'health=' + (j.status || 'unknown'));
+          return j.status === 'ok';
+        } catch (e) {
+          setStatus('error', 'Unreachable');
+          return false;
+        }
+      }
+
+      function renderCompliance(flags) {
+        const box = el('complianceList');
+        if (!flags || flags.length === 0) {
+          box.innerHTML = '<div class="empty">No compliance flags.</div>';
+          return;
+        }
+        const statusMap = {
+          passed: 'pass',
+          pass: 'pass',
+          failed: 'fail',
+          fail: 'fail',
+          pending_lineage_gap_check: 'warn',
+          pending_backtest: 'warn',
+          pending_stress: 'warn'
+        };
+        box.innerHTML = flags.map(f => {
+          const cls = statusMap[(f.status || '').toLowerCase()] || 'unknown';
+          const icon = cls === 'pass' ? '✅' : cls === 'fail' ? '❌' : '⚠️';
+          const text = `${f.regulation} · ${f.article_or_circular}`;
+          const detail = f.remediation ? `<div class="remediation">${f.remediation}</div>` : '';
+          return `<div class="compliance-item ${cls}"><span class="compliance-icon">${icon}</span><div><div class="compliance-title">${text}</div><div class="compliance-status">${f.status}${detail}</div></div></div>`;
+        }).join('');
+      }
+
+      function renderDecision(do_) {
+        const box = el('decisionSummary');
+        if (!do_) {
+          box.innerHTML = '<div class="empty">No decision object in response.</div>';
+          return;
+        }
+        const v = do_.var_breakdown || {};
+        const vars = `
+          <div class="kv"><span>Decision ID</span><span class="mono">${do_.decision_id || '—'}</span></div>
+          <div class="kv"><span>Created</span><span>${do_.created_at || '—'}</span></div>
+          <div class="kv"><span>Risk bucket</span><span>${do_.risk_bucket || '—'}</span></div>
+          <div class="kv"><span>Instrument</span><span class="mono">${do_.instrument_or_exposure_id || '—'}</span></div>
+          <div class="kv"><span>Model version</span><span class="mono">${do_.model_version || '—'}</span></div>
+          <div class="kv"><span>Technique</span><span>${do_.model_technique || '—'}</span></div>
+          <div class="kv"><span>Requires approval</span><span>${do_.requires_approval ? 'Yes' : 'No'}</span></div>
+          <div class="kv"><span>VaR 1D 99</span><span class="mono">${pct(v.var_1d_99)}</span></div>
+          <div class="kv"><span>VaR 10D 99</span><span class="mono">${pct(v.var_10d_99)}</span></div>
+          <div class="kv"><span>ES 1D 99</span><span class="mono">${pct(v.es_1d_99)}</span></div>
+          <div class="kv"><span>ES 10D 99</span><span class="mono">${pct(v.es_10d_99)}</span></div>
+          <div class="kv"><span>Explanation</span><span>${do_.explanation || '—'}</span></div>
+        `;
+        box.innerHTML = vars;
+      }
+
+      function renderTrace(steps, filter = 'all') {
+        const box = el('traceTable');
+        const rows = (steps || [])
+          .filter(s => filter === 'all' || (filter === 'success' && s.success) || (filter === 'fail' && !s.success))
+          .map(s => `<tr class="${s.success ? 'row-success' : 'row-fail'}">
+            <td><span class="agent-chip ${s.success ? 'chip-success' : 'chip-fail'}">${s.success ? '✔' : '✖'} ${s.agent}</span></td>
+            <td>${s.success ? 'Passed' : 'Failed'}</td>
+          </tr>`).join('');
+        box.innerHTML = rows || '<div class="empty">No matching steps.</div>';
+      }
+
+      function renderLineage(lineage) {
+        const box = el('lineageTable');
+        if (!lineage || lineage.length === 0) {
+          box.innerHTML = '<div class="empty">No lineage entries.</div>';
+          return;
+        }
+        box.innerHTML = lineage.map(l => `<tr>
+          <td>${l.source || ''}</td>
+          <td class="mono">${l.dataset || ''}</td>
+          <td class="mono">${l.version || ''}</td>
+          <td>${l.as_of || ''}</td>
+          <td>
+            <div class="quality">
+              <div class="quality-bar"><div class="quality-fill" style="width:${Math.round((l.quality_score || 0) * 100)}%"></div></div>
+              <span class="mono">${Number(l.quality_score || 0).toFixed(2)}</span>
+            </div>
+          </td>
+        </tr>`).join('');
+      }
+
+      function updateMetrics(do_) {
+        const v = do_ && do_.var_breakdown ? do_.var_breakdown : null;
+        el('var1d').textContent = v ? pct(v.var_1d_99) : '—';
+        el('var10d').textContent = v ? pct(v.var_10d_99) : '—';
+        el('es1d').textContent = v ? pct(v.es_1d_99) : '—';
+        el('es10d').textContent = v ? pct(v.es_10d_99) : '—';
+      }
+
+      async function runWorkflow() {
+        const ticker = (el('ticker').value || '^NSEI').trim();
+        const runDate = el('runDate').value || new Date().toISOString().slice(0, 10);
+        setStatus('loading', 'Running workflow…');
+        resetSteps();
+        el('runBtn').disabled = true;
+
+        try {
+          const r = await fetch(API + '/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticker })
+          });
+          const j = await r.json();
+          if (!r.ok) throw new Error(j.detail || r.statusText);
+
+          (j.steps || []).forEach(s => setStepState(s.agent, s.success));
+
+          updateMetrics(j.final_decision_object);
+          renderCompliance((j.final_decision_object || {}).compliance_flags);
+          renderDecision(j.final_decision_object);
+          renderTrace(j.steps, 'all');
+          renderLineage((j.final_decision_object || {}).data_lineage);
+
+          el('runInfo').textContent = `Ran ${j.run_date} · ${j.ticker} · ${(j.steps || []).filter(s => s.success).length}/${(j.steps || []).length} steps succeeded`;
+          setStatus('healthy', 'Complete');
+        } catch (e) {
+          setStatus('error', 'Run failed');
+          renderCompliance([]);
+          renderDecision(null);
+          renderTrace([], 'all');
+          renderLineage([]);
+          el('runInfo').textContent = 'Error: ' + (e.message || String(e));
+        } finally {
+          el('runBtn').disabled = false;
+        }
+      }
+
+      el('runBtn').addEventListener('click', runWorkflow);
+      el('healthBtn').addEventListener('click', async () => {
+        const ok = await ping();
+        if (ok) el('runInfo').textContent = 'Health OK';
+      });
+
+      el('traceTable').addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip');
+        if (!btn) return;
+        document.querySelectorAll('.trace-controls .chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        renderTrace(window.__lastTrace || [], btn.dataset.filter);
+      });
+
+      function init() {
+        el('runDate').value = new Date().toISOString().slice(0, 10);
+        ping();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
