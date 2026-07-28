@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agentic Market Risk Monitor — RBI-aligned</title>
+  <title>Agentic Market Risk Monitor</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,7 +15,7 @@
       <span class="logo">🛡️</span>
       <div class="brand-text">
         <h1>Agentic Market Risk Monitor</h1>
-        <p class="subtitle">Multi-agent risk intelligence · RBI-aligned · Basel III / SBC2</p>
+        <p class="subtitle">Multi-agent risk intelligence · Indian RBI · Basel III / SBC2</p>
       </div>
     </div>
     <div class="system-status">
@@ -26,62 +26,62 @@
 
   <main class="container">
     <section class="panel control-panel">
-      <h2>Control Panel</h2>
+      <div class="control-header">
+        <h2>⚡ Control Center</h2>
+        <span class="badge" id="modelBadge">Model: quantitative + sentiment</span>
+      </div>
       <div class="form-grid">
-        <label>
+        <label class="select-field">
           <span>Instrument</span>
-          <input id="ticker" type="text" value="^NSEI" />
+          <div class="select-wrap">
+            <select id="ticker">
+              <option value="^NSEI">^NSEI — Nifty 50</option>
+              <option value="^BSESN">^BSESN — Sensex</option>
+              <option value="RELIANCE.NS">RELIANCE.NS</option>
+              <option value="TCS.NS">TCS.NS</option>
+              <option value="INFY.NS">INFY.NS</option>
+              <option value="HDFCBANK.NS">HDFCBANK.NS</option>
+              <option value="SBIN.NS">SBIN.NS</option>
+              <option value="ICICIBANK.NS">ICICIBANK.NS</option>
+              <option value="AXISBANK.NS">AXISBANK.NS</option>
+              <option value="KOTAKBANK.NS">KOTAKBANK.NS</option>
+              <option value="WIPRO.NS">WIPRO.NS</option>
+              <option value="TATAMOTORS.NS">TATAMOTORS.NS</option>
+              <option value="SUNPHARMA.NS">SUNPHARMA.NS</option>
+              <option value="BAJFINANCE.NS">BAJFINANCE.NS</option>
+              <option value="LT.NS">LT.NS</option>
+            </select>
+            <span class="chevron">▾</span>
+          </div>
         </label>
-        <label>
+        <label class="field">
           <span>As of date</span>
-          <input id="runDate" type="date" />
+          <input id="runDate" type="date" value="" />
         </label>
         <div class="actions">
           <button id="runBtn" class="primary">▶ Run Agentic Workflow</button>
-          <button id="healthBtn" class="secondary">⟳ Ping /health</button>
+          <button id="healthBtn" class="secondary">⟳ Health Check</button>
         </div>
       </div>
 
       <div class="workflow-visual">
-        <div class="step" data-agent="ingest">
-          <div class="step-icon">📥</div>
-          <div class="step-label">Ingest</div>
-        </div>
+        <div class="step" data-agent="ingest"><div class="step-icon">📥</div><div class="step-label">Ingest</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="normalize">
-          <div class="step-icon">🧹</div>
-          <div class="step-label">Normalize</div>
-        </div>
+        <div class="step" data-agent="normalize"><div class="step-icon">🧹</div><div class="step-label">Normalize</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="var">
-          <div class="step-icon">📉</div>
-          <div class="step-label">VaR</div>
-        </div>
+        <div class="step" data-agent="var"><div class="step-icon">📉</div><div class="step-label">VaR</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="factor">
-          <div class="step-icon">🧮</div>
-          <div class="step-label">Factor</div>
-        </div>
+        <div class="step" data-agent="factor"><div class="step-icon">🧮</div><div class="step-label">Factor</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="macro">
-          <div class="step-icon">🌐</div>
-          <div class="step-label">Macro</div>
-        </div>
+        <div class="step" data-agent="macro"><div class="step-icon">🌐</div><div class="step-label">Macro</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="compliance">
-          <div class="step-icon">⚖️</div>
-          <div class="step-label">RBI</div>
-        </div>
+        <div class="step" data-agent="sentiment"><div class="step-icon">📰</div><div class="step-label">News</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="limit">
-          <div class="step-icon">🚧</div>
-          <div class="step-label">Limit</div>
-        </div>
+        <div class="step" data-agent="compliance"><div class="step-icon">⚖️</div><div class="step-label">RBI</div></div>
         <div class="arrow">→</div>
-        <div class="step" data-agent="drift">
-          <div class="step-icon">📡</div>
-          <div class="step-label">Drift</div>
-        </div>
+        <div class="step" data-agent="limit"><div class="step-icon">🚧</div><div class="step-label">Limit</div></div>
+        <div class="arrow">→</div>
+        <div class="step" data-agent="drift"><div class="step-icon">📡</div><div class="step-label">Drift</div></div>
       </div>
     </section>
 
@@ -105,9 +105,11 @@
     </section>
 
     <section class="split">
-      <div class="panel compliance-panel">
-        <h3>⚖️ Regulatory Compliance</h3>
-        <div id="complianceList" class="compliance-list"></div>
+      <div class="panel sentiment-panel">
+        <h3>📰 News Sentiment</h3>
+        <div id="sentimentBlock" class="sentiment-block">
+          <div class="empty">Run the workflow to load sentiment.</div>
+        </div>
       </div>
       <div class="panel decision-panel">
         <h3>📋 Decision Summary</h3>
@@ -133,7 +135,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <span>Agentic Market Risk Monitor · Built for Indian RBI regulatory alignment</span>
+      <span>Agentic Market Risk Monitor · Indian RBI aligned</span>
       <span class="mono" id="runInfo">No run yet</span>
     </div>
   </footer>
@@ -142,13 +144,10 @@
   <script>
     (function () {
       const API = window.location.origin;
+      const TICKERS = Array.from(document.querySelectorAll('#ticker option')).map(o => ({value: o.value, label: o.textContent}));
 
       function el(id) { return document.getElementById(id); }
-
-      function pct(n) {
-        if (n === null || n === undefined) return '—';
-        return (Number(n) * 100).toFixed(4) + '%';
-      }
+      function pct(n) { return (n === null || n === undefined) ? '—' : `${(Number(n) * 100).toFixed(4)}%`; }
 
       function setStatus(state, label) {
         const dot = el('statusDot');
@@ -173,7 +172,7 @@
         try {
           const r = await fetch(API + '/health', { headers: { accept: 'application/json' } });
           const j = await r.json();
-          setStatus(j.status === 'ok' ? 'healthy' : 'error', 'health=' + (j.status || 'unknown'));
+          setStatus(j.status === 'ok' ? 'healthy' : 'error', `health=${j.status || 'unknown'}`);
           return j.status === 'ok';
         } catch (e) {
           setStatus('error', 'Unreachable');
@@ -183,69 +182,55 @@
 
       function renderCompliance(flags) {
         const box = el('complianceList');
-        if (!flags || flags.length === 0) {
-          box.innerHTML = '<div class="empty">No compliance flags.</div>';
-          return;
-        }
-        const statusMap = {
-          passed: 'pass',
-          pass: 'pass',
-          failed: 'fail',
-          fail: 'fail',
-          pending_lineage_gap_check: 'warn',
-          pending_backtest: 'warn',
-          pending_stress: 'warn'
-        };
+        if (!box) return;
+        if (!flags || flags.length === 0) { box.innerHTML = '<div class="empty">No compliance flags.</div>'; return; }
+        const statusMap = { passed: 'pass', pass: 'pass', failed: 'fail', fail: 'fail', pending_lineage_gap_check: 'warn', pending_backtest: 'warn', pending_stress: 'warn' };
         box.innerHTML = flags.map(f => {
           const cls = statusMap[(f.status || '').toLowerCase()] || 'unknown';
           const icon = cls === 'pass' ? '✅' : cls === 'fail' ? '❌' : '⚠️';
-          const text = `${f.regulation} · ${f.article_or_circular}`;
+          const title = `${f.regulation} · ${f.article_or_circular}`;
           const detail = f.remediation ? `<div class="remediation">${f.remediation}</div>` : '';
-          return `<div class="compliance-item ${cls}"><span class="compliance-icon">${icon}</span><div><div class="compliance-title">${text}</div><div class="compliance-status">${f.status}${detail}</div></div></div>`;
+          return `<div class="compliance-item ${cls}"><span class="compliance-icon">${icon}</span><div><div class="compliance-title">${title}</div><div class="compliance-status">${f.status}${detail}</div></div></div>`;
         }).join('');
       }
 
       function renderDecision(do_) {
         const box = el('decisionSummary');
-        if (!do_) {
-          box.innerHTML = '<div class="empty">No decision object in response.</div>';
-          return;
-        }
+        if (!box) return;
+        if (!do_) { box.innerHTML = '<div class="empty">No decision object.</div>'; return; }
         const v = do_.var_breakdown || {};
-        const vars = `
-          <div class="kv"><span>Decision ID</span><span class="mono">${do_.decision_id || '—'}</span></div>
-          <div class="kv"><span>Created</span><span>${do_.created_at || '—'}</span></div>
-          <div class="kv"><span>Risk bucket</span><span>${do_.risk_bucket || '—'}</span></div>
-          <div class="kv"><span>Instrument</span><span class="mono">${do_.instrument_or_exposure_id || '—'}</span></div>
-          <div class="kv"><span>Model version</span><span class="mono">${do_.model_version || '—'}</span></div>
-          <div class="kv"><span>Technique</span><span>${do_.model_technique || '—'}</span></div>
-          <div class="kv"><span>Requires approval</span><span>${do_.requires_approval ? 'Yes' : 'No'}</span></div>
-          <div class="kv"><span>VaR 1D 99</span><span class="mono">${pct(v.var_1d_99)}</span></div>
-          <div class="kv"><span>VaR 10D 99</span><span class="mono">${pct(v.var_10d_99)}</span></div>
-          <div class="kv"><span>ES 1D 99</span><span class="mono">${pct(v.es_1d_99)}</span></div>
-          <div class="kv"><span>ES 10D 99</span><span class="mono">${pct(v.es_10d_99)}</span></div>
-          <div class="kv"><span>Explanation</span><span>${do_.explanation || '—'}</span></div>
-        `;
-        box.innerHTML = vars;
+        const rows = [
+          { label: 'Decision ID', value: do_.decision_id || '—' },
+          { label: 'Created', value: do_.created_at || '—' },
+          { label: 'Risk bucket', value: do_.risk_bucket || '—' },
+          { label: 'Instrument', value: do_.instrument_or_exposure_id || '—' },
+          { label: 'Model version', value: do_.model_version || '—' },
+          { label: 'Technique', value: do_.model_technique || '—' },
+          { label: 'Requires approval', value: do_.requires_approval ? 'Yes' : 'No' },
+          { label: 'VaR 1D 99', value: pct(v.var_1d_99) },
+          { label: 'VaR 10D 99', value: pct(v.var_10d_99) },
+          { label: 'ES 1D 99', value: pct(v.es_1d_99) },
+          { label: 'ES 10D 99', value: pct(v.es_10d_99) },
+          { label: 'Explanation', value: do_.explanation || '—' },
+        ];
+        box.innerHTML = rows.map(r => `<div class="kv"><span>${r.label}</span><span class="mono">${r.value}</span></div>`).join('');
       }
 
       function renderTrace(steps, filter = 'all') {
         const box = el('traceTable');
-        const rows = (steps || [])
-          .filter(s => filter === 'all' || (filter === 'success' && s.success) || (filter === 'fail' && !s.success))
-          .map(s => `<tr class="${s.success ? 'row-success' : 'row-fail'}">
-            <td><span class="agent-chip ${s.success ? 'chip-success' : 'chip-fail'}">${s.success ? '✔' : '✖'} ${s.agent}</span></td>
-            <td>${s.success ? 'Passed' : 'Failed'}</td>
-          </tr>`).join('');
-        box.innerHTML = rows || '<div class="empty">No matching steps.</div>';
+        if (!box) return;
+        const filtered = (steps || []).filter(s => filter === 'all' || (filter === 'success' && s.success) || (filter === 'fail' && !s.success));
+        window.__lastTrace = steps || [];
+        box.innerHTML = filtered.map(s => `<tr class="${s.success ? 'row-success' : 'row-fail'}">
+          <td><span class="agent-chip ${s.success ? 'chip-success' : 'chip-fail'}">${s.success ? '✔' : '✖'} ${s.agent}</span></td>
+          <td>${s.success ? 'Passed' : 'Failed'}</td>
+        </tr>`).join('') || '<div class="empty">No matching steps.</div>';
       }
 
       function renderLineage(lineage) {
         const box = el('lineageTable');
-        if (!lineage || lineage.length === 0) {
-          box.innerHTML = '<div class="empty">No lineage entries.</div>';
-          return;
-        }
+        if (!box) return;
+        if (!lineage || lineage.length === 0) { box.innerHTML = '<div class="empty">No lineage entries.</div>'; return; }
         box.innerHTML = lineage.map(l => `<tr>
           <td>${l.source || ''}</td>
           <td class="mono">${l.dataset || ''}</td>
@@ -268,18 +253,43 @@
         el('es10d').textContent = v ? pct(v.es_10d_99) : '—';
       }
 
+      function renderSentiment(decision) {
+        const box = el('sentimentBlock');
+        if (!box) return;
+        const explanation = (decision && decision.explanation) || '';
+        const hasSentiment = explanation.toLowerCase().includes('sentiment=');
+        if (!hasSentiment) {
+          box.innerHTML = '<div class="empty">No sentiment adjustment applied.</div>';
+          return;
+        }
+        const label = (explanation.match(/sentiment=([a-z]+)/) || [,'neutral'])[1];
+        const score = (explanation.match(/score=([-\d.]+)/) || [,'0.0'])[1];
+        const uplift = explanation.includes('Sentiment uplift');
+        const downgrade = explanation.includes('Sentiment downgrade');
+        const theme = uplift ? 'positive' : downgrade ? 'negative' : 'neutral';
+        const icon = theme === 'positive' ? '🚀' : theme === 'negative' ? '🔻' : 'ℹ️';
+        box.innerHTML = `
+          <div class="sentiment-card ${theme}">
+            <div class="sentiment-header"><span class="sentiment-icon">${icon}</span><span class="sentiment-title">${label.toUpperCase()}</span></div>
+            <div class="sentiment-body">
+              <div class="kv"><span>Score</span><span class="mono">${Number(score).toFixed(3)}</span></div>
+              <div class="kv"><span>Effect</span><span>${uplift ? 'VaR uplift +10%' : downgrade ? 'VaR haircut -15%' : 'No change'}</span></div>
+              <div class="kv"><span>Source</span><span>News API keyword model</span></div>
+            </div>
+          </div>`;
+      }
+
       async function runWorkflow() {
         const ticker = (el('ticker').value || '^NSEI').trim();
         const runDate = el('runDate').value || new Date().toISOString().slice(0, 10);
         setStatus('loading', 'Running workflow…');
         resetSteps();
         el('runBtn').disabled = true;
-
         try {
           const r = await fetch(API + '/run', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ticker })
+            body: JSON.stringify({ ticker }),
           });
           const j = await r.json();
           if (!r.ok) throw new Error(j.detail || r.statusText);
@@ -287,16 +297,15 @@
           (j.steps || []).forEach(s => setStepState(s.agent, s.success));
 
           updateMetrics(j.final_decision_object);
-          renderCompliance((j.final_decision_object || {}).compliance_flags);
           renderDecision(j.final_decision_object);
           renderTrace(j.steps, 'all');
           renderLineage((j.final_decision_object || {}).data_lineage);
+          renderSentiment(j.final_decision_object);
 
-          el('runInfo').textContent = `Ran ${j.run_date} · ${j.ticker} · ${(j.steps || []).filter(s => s.success).length}/${(j.steps || []).length} steps succeeded`;
+          el('runInfo').textContent = `Ran ${j.run_date} · ${j.ticker} · ${(j.steps || []).filter(s => s.success).length}/${(j.steps || []).length} passed`;
           setStatus('healthy', 'Complete');
         } catch (e) {
           setStatus('error', 'Run failed');
-          renderCompliance([]);
           renderDecision(null);
           renderTrace([], 'all');
           renderLineage([]);
@@ -306,26 +315,25 @@
         }
       }
 
-      el('runBtn').addEventListener('click', runWorkflow);
-      el('healthBtn').addEventListener('click', async () => {
-        const ok = await ping();
-        if (ok) el('runInfo').textContent = 'Health OK';
-      });
-
-      el('traceTable').addEventListener('click', (e) => {
-        const btn = e.target.closest('.chip');
-        if (!btn) return;
-        document.querySelectorAll('.trace-controls .chip').forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        renderTrace(window.__lastTrace || [], btn.dataset.filter);
-      });
-
       function init() {
-        el('runDate').value = new Date().toISOString().slice(0, 10);
+        const today = new Date().toISOString().slice(0, 10);
+        el('runDate').value = today;
+        el('runBtn').addEventListener('click', runWorkflow);
+        el('healthBtn').addEventListener('click', async () => {
+          const ok = await ping();
+          if (ok) el('runInfo').textContent = 'Health OK';
+        });
+        el('traceTable').addEventListener('click', (e) => {
+          const btn = e.target.closest('.chip');
+          if (!btn) return;
+          document.querySelectorAll('.trace-controls .chip').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          renderTrace(window.__lastTrace || [], btn.dataset.filter);
+        });
         ping();
       }
 
-      init();
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     })();
   </script>
 </body>
