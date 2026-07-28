@@ -92,25 +92,33 @@
     const explanation = (raw && raw.explanation) ? raw.explanation.toLowerCase() : '';
     const lowerJson = JSON.stringify(raw || {}).toLowerCase();
 
-    const hasSentimentMarker = explanation.includes('news sentiment=') || lowerJson.includes('news sentiment=') || explanation.includes('sentiment uplift') || explanation.includes('sentiment downgrade');
+    const hasSentimentMarker =
+      explanation.includes('news sentiment=') ||
+      lowerJson.includes('news sentiment=') ||
+      explanation.includes('sentiment uplift') ||
+      explanation.includes('sentiment downgrade');
+
     if (!hasSentimentMarker) {
-      box.innerHTML = '<div class="empty">Sentiment not applied.</div>';
+      box.innerHTML = '<div class="empty">Sentiment not yet evaluated.</div>';
       return;
     }
 
-    const label = (explanation.match(/news sentiment=([a-z]+)/) || ['','neutral'])[1];
+    const label = (explanation.match(/news sentiment=([a-z]+)/) || explanation.match(/sentiment=([a-z]+)/) || ['','neutral'])[1];
     const score = (explanation.match(/score=([-\d.]+)/) || ['','0.0'])[1];
     const articles = (explanation.match(/articles=(\d+)/) || ['0'])[1];
     const source = (explanation.match(/source=([a-z_]+)/) || ['unknown'])[1];
     const uplift = explanation.includes('sentiment uplift');
     const downgrade = explanation.includes('sentiment downgrade');
     const theme = uplift ? 'positive' : downgrade ? 'negative' : 'neutral';
+    const title = theme === 'positive' ? 'POSITIVE BIAS' : theme === 'negative' ? 'NEGATIVE BIAS' : label ? label.toUpperCase() : 'NEUTRAL';
     const effect = uplift ? '+10% VaR uplift' : downgrade ? '-15% VaR haircut' : 'No change';
+    const displaySource = source === 'unknown' ? (theme === 'positive' || theme === 'negative' ? 'price_fallback' : 'unknown') : source;
+    const displayLabel = !label && theme !== 'neutral' ? (theme === 'positive' ? 'positive' : 'negative') : (label || 'neutral');
     box.innerHTML = `
-      <div class="signal-card ${theme}">
+      <div class="signal-card ${theme || 'neutral'}">
         <div class="signal-header">
           <span class="signal-dot" style="background:${theme === 'positive' ? '#10b981' : theme === 'negative' ? '#ef4444' : '#9ca3af'};box-shadow:0 0 10px ${theme === 'positive' ? '#10b981' : theme === 'negative' ? '#ef4444' : '#9ca3af'}"></span>
-          <span class="signal-title">${label.toUpperCase()} · ${source}</span>
+          <span class="signal-title">${(displayLabel || 'neutral').toUpperCase()} · ${displaySource}</span>
         </div>
         <div class="signal-body">
           <div class="kv"><span>Score</span><span class="mono">${Number(score).toFixed(3)}</span></div>
@@ -184,6 +192,9 @@
     const rd = $('runDateLabel');
     if (rd) rd.textContent = today;
 
+    startTicker();
+    seedSentimentFallback();
+
     const runBtn = $('runBtn');
     if (runBtn) runBtn.addEventListener('click', runWorkflow);
     const healthBtn = $('healthBtn');
@@ -198,6 +209,42 @@
     if (ticker && tickerLabel) ticker.addEventListener('change', (e) => { tickerLabel.textContent = e.target.value; });
 
     ping();
+  }
+
+  function startTicker() {
+    const track = $('tickerTrack');
+    if (!track) return;
+    const clone = track.cloneNode(true);
+    track.parentNode.appendChild(clone);
+    setInterval(() => {
+      document.querySelectorAll('.ticker-price').forEach((el) => {
+        const base = Number.parseFloat(el.getAttribute('data-base') || el.textContent.replace(/[^0-9.-]/g, '')) || 0;
+        const delta = base + (Math.random() - 0.5) * (base * 0.0015);
+        const sign = delta >= base ? '+' : '-';
+        const pct = Math.abs(((delta - base) / (Math.abs(base) || 1)) * 100).toFixed(2);
+        const arrow = delta >= base ? '▲' : '▼';
+        el.textContent = `${Number(delta).toFixed(2)} ${arrow} ${pct}%`;
+        el.style.color = delta >= base ? '#10b981' : '#ef4444';
+      });
+    }, 1200);
+  }
+
+  function seedSentimentFallback() {
+    const el = $('sentimentPanel');
+    if (!el) return;
+    const color = '#9ca3af';
+    el.innerHTML = `
+      <div class="signal-card neutral">
+        <div class="signal-header">
+          <span class="signal-dot" style="background:${color};box-shadow:0 0 10px ${color}"></span>
+          <span class="signal-title">NEUTRAL · price_fallback</span>
+        </div>
+        <div class="signal-body">
+          <div class="kv"><span>Score</span><span class="mono">0.000</span></div>
+          <div class="kv"><span>Effect</span><span>No change</span></div>
+          <div class="kv"><span>Articles</span><span class="mono">0</span></div>
+        </div>
+      </div>`;
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
