@@ -90,11 +90,15 @@
     const box = $('sentimentPanel');
     if (!box) return;
     const explanation = (raw && raw.explanation) ? raw.explanation.toLowerCase() : '';
-    if (!explanation.includes('sentiment=')) {
+    const lowerJson = JSON.stringify(raw || {}).toLowerCase();
+
+    const hasSentimentMarker = explanation.includes('news sentiment=') || lowerJson.includes('news sentiment=');
+    if (!hasSentimentMarker) {
       box.innerHTML = '<div class="empty">Sentiment not applied.</div>';
       return;
     }
-    const label = (explanation.match(/sentiment=([a-z]+)/) || ['','neutral'])[1];
+
+    const label = (explanation.match(/news sentiment=([a-z]+)/) || ['','neutral'])[1];
     const score = (explanation.match(/score=([-\d.]+)/) || ['','0.0'])[1];
     const articles = (explanation.match(/articles=(\d+)/) || ['0'])[1];
     const source = (explanation.match(/source=([a-z_]+)/) || ['unknown'])[1];

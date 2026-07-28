@@ -53,7 +53,7 @@ class LimitAgent(Agent):
             model_technique="threshold-watch",
             data_lineage=do.data_lineage + [lineage],
             compliance_flags=do.compliance_flags,
-            explanation="; ".join(notes) if notes else "No limit breaches",
+            explanation=(do.explanation or "") + (" | " if do.explanation else "") + "; ".join(notes) if notes else "No limit breaches",
             requires_approval=breach or do.requires_approval,
         )
         return AgentResult(success=True, message="Limit check completed", decision_object=d)

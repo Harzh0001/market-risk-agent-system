@@ -58,7 +58,7 @@ class RBIComplianceAgent(Agent):
             model_technique="RBI-compliance-rules",
             data_lineage=do.data_lineage if do else [],
             compliance_flags=flags,
-            explanation="Automated rulebook check against RBI/SBC2/Basel III criteria",
+            explanation=(do.explanation or "") + " | Automated rulebook check against RBI/SBC2/Basel III criteria" if do else "Automated rulebook check against RBI/SBC2/Basel III criteria",
         )
         return AgentResult(success=True, message="Compliance check completed", decision_object=d)
 
