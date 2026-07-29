@@ -259,7 +259,7 @@ button:disabled { opacity: .55; cursor: not-allowed; filter: grayscale(.3); }
 .panel-dot.purple { background: var(--purple); box-shadow: 0 0 8px rgba(168,85,247,0.5); }
 .panel-dot.blue { background: var(--accent); box-shadow: 0 0 8px rgba(59,130,246,0.5); }
 
-.decision-panel, .sentiment-panel { display: flex; flex-direction: column; gap: 8px; }
+.decision-panel, .sentiment-panel, .detail-panel { display: flex; flex-direction: column; gap: 8px; }
 .kv {
   display: flex;
   justify-content: space-between;
@@ -270,6 +270,15 @@ button:disabled { opacity: .55; cursor: not-allowed; filter: grayscale(.3); }
 }
 .kv span:first-child { color: var(--muted); }
 .empty { color: var(--muted); font-size: 13px; }
+
+.trace-panel { margin-top: 10px; }
+.trace-panel.hidden { display: none; }
+.trace-item.ok { color: #6ee7b7; }
+.trace-item.fail { color: #fca5a5; }
+
+.chip.pass { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+.chip.fail { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+.chip.pending { background: rgba(148,163,184,0.12); color: #e5e7eb; border: 1px solid rgba(148,163,184,0.25); }
 
 .signal-card {
   background: #0b1220;

@@ -66,6 +66,7 @@
             <option value="BAJFINANCE.NS">BAJFINANCE — Bajaj Finance</option>
             <option value="LT.NS">LT — Larsen & Toubro</option>
           </select>
+          <input type="date" id="runDateInput" class="ticker-select" style="min-width:150px" />
           <button id="runBtn" class="primary">▶ RUN WORKFLOW</button>
           <button id="healthBtn" class="secondary">⟳ PING</button>
         </div>
@@ -102,36 +103,50 @@
           <span>METRIC</span>
           <span>STATUS</span>
         </div>
-        <div class="matrix-row" data-row="var">
+        <div class="matrix-row" data-row="var" data-risk="low">
           <span class="row-num">01</span>
           <span class="row-name">Market VaR <span class="row-sub">1-Day 99%</span></span>
           <span class="row-level" id="varLevel">—</span>
           <span class="row-value mono" id="varValue">—</span>
           <span class="row-status" id="varStatus"><span class="chip">—</span></span>
         </div>
-        <div class="matrix-row" data-row="es">
+        <div class="matrix-row" data-row="var10d" data-risk="low">
           <span class="row-num">02</span>
+          <span class="row-name">Market VaR <span class="row-sub">10-Day 99%</span></span>
+          <span class="row-level" id="var10dLevel">—</span>
+          <span class="row-value mono" id="var10dValue">—</span>
+          <span class="row-status" id="var10dStatus"><span class="chip">—</span></span>
+        </div>
+        <div class="matrix-row" data-row="es" data-risk="low">
+          <span class="row-num">03</span>
           <span class="row-name">Expected Shortfall <span class="row-sub">1-Day 99%</span></span>
           <span class="row-level" id="esLevel">—</span>
           <span class="row-value mono" id="esValue">—</span>
           <span class="row-status" id="esStatus"><span class="chip">—</span></span>
         </div>
-        <div class="matrix-row" data-row="sentiment">
-          <span class="row-num">03</span>
+        <div class="matrix-row" data-row="es10d" data-risk="low">
+          <span class="row-num">04</span>
+          <span class="row-name">Expected Shortfall <span class="row-sub">10-Day 99%</span></span>
+          <span class="row-level" id="es10dLevel">—</span>
+          <span class="row-value mono" id="es10dValue">—</span>
+          <span class="row-status" id="es10dStatus"><span class="chip">—</span></span>
+        </div>
+        <div class="matrix-row" data-row="sentiment" data-risk="low">
+          <span class="row-num">05</span>
           <span class="row-name">News Sentiment <span class="row-sub">headline score</span></span>
           <span class="row-level" id="sentimentLevel">—</span>
           <span class="row-value mono" id="sentimentValue">—</span>
           <span class="row-status" id="sentimentStatus"><span class="chip">—</span></span>
         </div>
-        <div class="matrix-row" data-row="compliance">
-          <span class="row-num">04</span>
+        <div class="matrix-row" data-row="compliance" data-risk="low">
+          <span class="row-num">06</span>
           <span class="row-name">RBI Compliance <span class="row-sub">flags / lineage</span></span>
           <span class="row-level" id="complianceLevel">—</span>
           <span class="row-value mono" id="complianceValue">—</span>
           <span class="row-status" id="complianceStatus"><span class="chip">—</span></span>
         </div>
-        <div class="matrix-row" data-row="approval">
-          <span class="row-num">05</span>
+        <div class="matrix-row" data-row="approval" data-risk="low">
+          <span class="row-num">07</span>
           <span class="row-name">Limit / Approval <span class="row-sub">governance</span></span>
           <span class="row-level" id="approvalLevel">—</span>
           <span class="row-value mono" id="approvalValue">—</span>
@@ -167,8 +182,21 @@
           </div>
         </div>
         <div class="footer-right">
+          <button class="secondary" id="showTraceBtn">Show agent trace</button>
           <span class="mono" id="runInfo">No run yet</span>
         </div>
+      </div>
+      <div id="tracePanel" class="trace-panel hidden"></div>
+    </section>
+
+    <section class="panels-split">
+      <div class="panel info-panel">
+        <h3 class="panel-title"><span class="panel-dot purple"></span>COMPLIANCE DETAIL</h3>
+        <div id="complianceDetail" class="detail-panel"><div class="empty">Run workflow to view checks.</div></div>
+      </div>
+      <div class="panel info-panel">
+        <h3 class="panel-title"><span class="panel-dot blue"></span>APPROVAL / LIMIT DETAIL</h3>
+        <div id="approvalDetail" class="detail-panel"><div class="empty">Run workflow to view result.</div></div>
       </div>
     </section>
   </main>
