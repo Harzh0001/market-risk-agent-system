@@ -300,6 +300,9 @@
       });
     });
 
+    const demoBtn = $('demoBtn');
+    if (demoBtn) demoBtn.addEventListener('click', populateDemo);
+
     // Initial sentiment state is neutral until a run completes
     const sentimentPanel = $('sentimentPanel');
     if (sentimentPanel && !sentimentPanel.querySelector('.signal-card')) {
@@ -307,6 +310,50 @@
     }
 
     ping();
+  }
+
+  function populateDemo() {
+    setStatus('healthy', 'DEMO');
+    const raw = {
+      var_breakdown: {
+        var_1d_99: 0.0123,
+        var_10d_99: 0.0198,
+        es_1d_99: 0.0184,
+        es_10d_99: 0.0261,
+      },
+      confidence: 0.82,
+      explanation: 'Demo run: VaR/ES realistic sample values',
+      compliance_flags: [
+        { rule: 'RBI-STP Thresh', status: 'PASS' },
+        { rule: 'CIBIL cap', status: 'PASS' },
+        { rule: 'CET1 floor', status: 'ELEVATED' },
+      ],
+      requires_approval: true,
+    };
+    const v = raw.var_breakdown || {};
+    applyRow('var', fmtPct(v.var_1d_99), v.var_1d_99);
+    applyRow('var10d', fmtPct(v.var_10d_99), v.var_10d_99);
+    applyRow('es', fmtPct(v.es_1d_99), v.es_1d_99);
+    applyRow('es10d', fmtPct(v.es_10d_99), v.es_10d_99);
+    applyCompliance(raw);
+    applyApproval(raw);
+    renderDecision(raw);
+    const explanation = 'news sentiment=positive (score=0.421, articles=12, source=price_fallback)';
+    const fakeRaw = { explanation };
+    renderSentiment(fakeRaw);
+    renderTrace([
+      { agent: 'ingest', success: true },
+      { agent: 'normalize', success: true },
+      { agent: 'var', success: true },
+      { agent: 'factor', success: true },
+      { agent: 'macro', success: true },
+      { agent: 'sentiment', success: true },
+      { agent: 'compliance', success: true },
+      { agent: 'limit', success: true },
+      { agent: 'drift', success: true },
+    ]);
+    const infoEl = $('runInfo');
+    if (infoEl) infoEl.textContent = 'Demo mode — no backend run';
   }
 
   function seedNeutralSentiment() {
@@ -334,9 +381,14 @@
     track.parentNode.appendChild(clone);
     setInterval(() => {
       document.querySelectorAll('.ticker-price').forEach((el) => {
-        const base = Number.parseFloat(el.getAttribute('data-base') || el.textContent.replace(/[^0-9.-]/g, '')) || 0;
+        const baseText = (el.textContent || '').replace(/[^0-9.\-]/g, '').trim();
+        const base = Number.parseFloat(baseText) || 0;
+        if (base === 0) {
+          el.textContent = '--';
+          el.style.color = 'var(--muted)';
+          return;
+        }
         const delta = base + (Math.random() - 0.5) * (base * 0.0015);
-        const sign = delta >= base ? '+' : '-';
         const pct = Math.abs(((delta - base) / (Math.abs(base) || 1)) * 100).toFixed(2);
         const arrow = delta >= base ? '▲' : '▼';
         el.textContent = `${Number(delta).toFixed(2)} ${arrow} ${pct}%`;
