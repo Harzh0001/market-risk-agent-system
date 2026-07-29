@@ -80,30 +80,8 @@ class MarketRiskOrchestrator:
                 s_label = "unknown"
                 s_score = 0.0
 
-            if s_label == "positive":
-                if do.var_breakdown:
-                    old1d = do.var_breakdown.var_1d_99
-                    old10d = do.var_breakdown.var_10d_99
-                    old_es1d = do.var_breakdown.es_1d_99
-                    old_es10d = do.var_breakdown.es_10d_99
-                    do.var_breakdown.var_1d_99 = old1d * 1.10 if old1d is not None else old1d
-                    do.var_breakdown.var_10d_99 = old10d * 1.10 if old10d is not None else old10d
-                    do.var_breakdown.es_1d_99 = old_es1d * 1.10 if old_es1d is not None else old_es1d
-                    do.var_breakdown.es_10d_99 = old_es10d * 1.10 if old_es10d is not None else old_es10d
-                do.explanation = (do.explanation or "") + " | Sentiment uplift: positive news"
-                do.confidence = min((do.confidence or 0.0) + 0.05, 0.99)
-            elif s_label == "negative":
-                if do.var_breakdown:
-                    old1d = do.var_breakdown.var_1d_99
-                    old10d = do.var_breakdown.var_10d_99
-                    old_es1d = do.var_breakdown.es_1d_99
-                    old_es10d = do.var_breakdown.es_10d_99
-                    do.var_breakdown.var_1d_99 = old1d * 0.85 if old1d is not None else old1d
-                    do.var_breakdown.var_10d_99 = old10d * 0.85 if old10d is not None else old10d
-                    do.var_breakdown.es_1d_99 = old_es1d * 0.85 if old_es1d is not None else old_es1d
-                    do.var_breakdown.es_10d_99 = old_es10d * 0.85 if old_es10d is not None else old_es10d
-                do.explanation = (do.explanation or "") + " | Sentiment downgrade: negative news"
-                do.confidence = max((do.confidence or 0.0) - 0.05, 0.01)
+            do.explanation = (do.explanation or "") + " | " + (s_obj.explanation or "")
+            do.confidence = min((do.confidence or 0.0) + (0.05 if s_label == "positive" else -0.05 if s_label == "negative" else 0.0), 0.99)
 
         comp_out = self.compliance.run(task="rbi compliance", context={"decision_object": do})
         limit_out = self.limit.run(task="limit check", context={"decision_object": comp_out.decision_object})
